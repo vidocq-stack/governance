@@ -60,7 +60,15 @@ jobs:
 
       - name: Check GPG signatures on all commits
         run: |
-          UNSIGNED=$(git log origin/main..HEAD --format="%H %ae" | \
+          if [ -n "${GITHUB_BASE_REF:-}" ]; then
+            BASE_REF="origin/$GITHUB_BASE_REF"
+          elif git show-ref --verify --quiet refs/remotes/origin/HEAD; then
+            BASE_REF="$(git symbolic-ref --short refs/remotes/origin/HEAD)"
+          else
+            BASE_REF="origin/main"
+          fi
+
+          UNSIGNED=$(git log "$BASE_REF"..HEAD --format="%H %ae" | \
             while read -r hash email; do
               git verify-commit "$hash" 2>/dev/null || echo "  $hash ($email)"
             done)
@@ -86,7 +94,15 @@ jobs:
 
       - name: Check Signed-off-by on all commits
         run: |
-          MISSING=$(git log origin/main..HEAD --format="%H" | \
+          if [ -n "${GITHUB_BASE_REF:-}" ]; then
+            BASE_REF="origin/$GITHUB_BASE_REF"
+          elif git show-ref --verify --quiet refs/remotes/origin/HEAD; then
+            BASE_REF="$(git symbolic-ref --short refs/remotes/origin/HEAD)"
+          else
+            BASE_REF="origin/main"
+          fi
+
+          MISSING=$(git log "$BASE_REF"..HEAD --format="%H" | \
             while read -r hash; do
               body=$(git log -1 --format="%B" "$hash")
               echo "$body" | grep -q "^Signed-off-by:" || echo "  $hash"
