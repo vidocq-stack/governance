@@ -11,7 +11,7 @@ have read and agree to the
 | Full Name | Codeberg Username | Date |
 |-----------|-------------------|------|
 | Antoine Sabot-Durand | @antoine_sd | 2026-06-01 |
-| Yann Blazart | @yann-blazart | 2026-06-01 |
+| Yann Blazart | @yblazart | 2026-06-01 |
 
 ---
 
