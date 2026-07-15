@@ -12,6 +12,7 @@ have read and agree to the
 |-----------|-------------------|------|
 | Antoine Sabot-Durand | @antoine_sd | 2026-06-01 |
 | Yann Blazart | @yblazart | 2026-06-01 |
+| Gerd Aschemann | @ascheman | 2026-07-15 |
 
 ---
 
