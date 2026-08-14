@@ -35,59 +35,62 @@ your first pull request.
 Every commit must be cryptographically signed with your GPG key. This is
 verified automatically on every pull request.
 
-If you are new to GPG, the following resources will help you get started:
+Rather than maintain our own copy of these instructions (and risk them
+drifting out of date), follow Codeberg's own guide for the whole
+generate-a-key → configure-Git → upload-to-your-account flow:
 
-- [The GNU Privacy Guard handbook](https://www.gnupg.org/gph/en/manual.html)
-- [GitHub guide to GPG commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)
-- [Codeberg documentation: Sign commits with GPG](https://docs.codeberg.org/security/gpg-key/)
+**→ [Codeberg documentation: Sign commits with GPG](https://docs.codeberg.org/security/gpg-key/)**
 
-If you prefer a graphical interface, [Kleopatra](https://www.openpgp.org/software/kleopatra/)
-(Windows/Linux) and [GPG Suite](https://gpgtools.org/) (macOS) are recommended.
+It walks through `gpg --full-generate-key` (recommending an RSA 4096 key),
+then `git config set --global user.signingkey <KEY ID>` and
+`git config set --global commit.gpgsign true` to sign every commit by
+default, plus how to add the resulting public key to your Codeberg account
+and verify ownership of it. If your Git predates the `config set`
+subcommand (added in Git 2.46), the older equivalent still works:
+`git config --global commit.gpgsign true`.
 
-### Generate a GPG key (if you do not have one)
-
-```bash
-gpg --batch --gen-key <<EOF
-Key-Type: ECDSA
-Key-Curve: ed25519
-Subkey-Type: ECDH
-Subkey-Curve: cv25519
-Name-Real: Your Full Name
-Name-Email: your@email.com
-Expire-Date: 2y
-%ask-passphrase
-EOF
-```
-
-### Configure git to sign all commits
+Vidocq also expects annotated release tags to be signed, which that guide
+doesn't cover — while you're there, add:
 
 ```bash
-# Get your key ID
-gpg --list-secret-keys --keyid-format=long your@email.com
-
-# Configure git (replace KEY_ID with your actual key ID)
-git config --global user.signingkey KEY_ID
-git config --global commit.gpgsign true
 git config --global tag.gpgsign true
 ```
 
+If you'd rather use a graphical interface, [Kleopatra](https://www.openpgp.org/software/kleopatra/)
+(Windows/Linux) and [GPG Suite](https://gpgtools.org/) (macOS) are good options. The
+[GNU Privacy Guard handbook](https://www.gnupg.org/gph/en/manual.html) is the reference for
+anything Codeberg's guide doesn't cover (subkeys, smartcards, key rotation, ...).
+
+Once your key exists and is attached to your Codeberg account, two
+Vidocq-specific steps remain:
+
 ### Configure automatic Signed-off-by
+
+If you're working inside the multi-repo
+[`vidocq-workspace`](https://codeberg.org/Vidocq/vidocq-workspace) (cloned via `mani` —
+see that repo's own README for the clone/setup instructions), the preferred way to do
+this is:
+
+```bash
+mani run -a install-hooks
+```
+
+This points every repo's `core.hooksPath` at the workspace's shared `.githooks/`
+directory, which both auto-appends the `Signed-off-by` trailer *and* hard-blocks any
+commit that somehow ends up without one anyway (`--amend` without `-s`, cherry-picks,
+IDE-driven commits, ...) — stronger than the config option below, and it wires up
+every repo in the workspace in one shot instead of one at a time.
+
+If you're working from a single standalone clone instead, the lighter-weight
+equivalent is:
 
 ```bash
 git config --local format.signoff true
 ```
 
 This automatically appends `Signed-off-by: Your Name <your@email.com>`
-to every commit message.
-
-### Add your public key to your Codeberg account
-
-Export your public key and add it under **Settings > SSH/GPG Keys**
-in your Codeberg profile:
-
-```bash
-gpg --export --armor your@email.com
-```
+to every commit message — but, unlike the hook above, it won't stop a commit that
+ends up missing the trailer through some other path (e.g. an amend without `-s`).
 
 ### Export your public key for the CLA signature
 
@@ -170,6 +173,33 @@ mvn test
 ---
 
 ## Submitting a Contribution
+
+Codeberg runs on [Forgejo](https://forgejo.org/), not GitHub — the `gh` CLI won't talk to
+it. If you'd rather open and manage pull requests from the terminal than through the web
+UI, install [`tea`](https://gitea.com/gitea/tea), the official CLI for Gitea/Forgejo
+servers (`brew install tea`, or `go install code.gitea.io/tea@latest` if you have a Go
+toolchain; prebuilt binaries are also published on that project's releases page). It's
+entirely optional — everything below works fine from the web UI too.
+
+#### Logging `tea` into Codeberg
+
+```bash
+tea login add --name codeberg --url https://codeberg.org
+```
+
+Leave off `--token` so it prompts interactively — passing it as a flag leaves the raw
+token sitting in your shell history. You'll need a personal access token from Codeberg's
+**Settings → Applications**, with these scopes:
+
+- **`user` → Read** — required for login itself (`tea` calls the "current user" API to
+  verify the token); without it you'll get
+  `token does not have at least one of required scope(s): [read:user]`.
+- **`repository` → Read and Write** — covers PR creation/management
+  (`tea pr create`, `tea pr checkout`, ...).
+- **`issue` → Read and Write** — optional, only if you'll also manage issues via `tea`.
+
+Scopes can't be edited on an existing token — if you picked the wrong ones, generate a
+new token rather than trying to fix the old one.
 
 1. Fork the repository on Codeberg.
 2. Create a feature branch from `main`:
