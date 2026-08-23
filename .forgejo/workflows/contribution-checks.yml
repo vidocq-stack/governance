@@ -30,7 +30,7 @@ jobs:
             echo ""
             echo "Please open a separate pull request on vidocq/governance"
             echo "adding your name to CLA-signatures/individuals.md."
-            echo "See https://codeberg.org/vidocq/governance/src/branch/main/CONTRIBUTING.md"
+            echo "See https://codefloe.com/Vidocq/governance/src/branch/main/CONTRIBUTING.md"
             exit 1
           fi
 
@@ -77,7 +77,7 @@ jobs:
             echo "$UNSIGNED"
             echo ""
             echo "All commits must be GPG-signed."
-            echo "See https://codeberg.org/vidocq/governance/src/branch/main/CONTRIBUTING.md#set-up-gpg-commit-signing"
+            echo "See https://codefloe.com/Vidocq/governance/src/branch/main/CONTRIBUTING.md#set-up-gpg-commit-signing"
             exit 1
           else
             echo "✅ All commits are correctly GPG-signed"
