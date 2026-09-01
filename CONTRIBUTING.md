@@ -44,8 +44,11 @@ generate-a-key → configure-Git → upload-to-your-account flow:
 It walks through `gpg --full-generate-key` (recommending an RSA 4096 key),
 then `git config set --global user.signingkey <KEY ID>` and
 `git config set --global commit.gpgsign true` to sign every commit by
-default, plus how to add the resulting public key to your Codeberg account
-and verify ownership of it. If your Git predates the `config set`
+default; follow the same steps to add the resulting public key to your
+**Codefloe** account and verify ownership of it (the guide itself talks about
+Codeberg's own account settings, but the generate-key/configure-Git steps are
+identical — only the "upload to your account" step happens on Codefloe now).
+If your Git predates the `config set`
 subcommand (added in Git 2.46), the older equivalent still works:
 `git config --global commit.gpgsign true`.
 
@@ -61,13 +64,13 @@ If you'd rather use a graphical interface, [Kleopatra](https://www.openpgp.org/s
 [GNU Privacy Guard handbook](https://www.gnupg.org/gph/en/manual.html) is the reference for
 anything Codeberg's guide doesn't cover (subkeys, smartcards, key rotation, ...).
 
-Once your key exists and is attached to your Codeberg account, two
+Once your key exists and is attached to your Codefloe account, two
 Vidocq-specific steps remain:
 
 ### Configure automatic Signed-off-by
 
 If you're working inside the multi-repo
-[`vidocq-workspace`](https://codeberg.org/Vidocq/vidocq-workspace) (cloned via `mani` —
+[`vidocq-workspace`](https://codefloe.com/Vidocq/vidocq-workspace) (cloned via `mani` —
 see that repo's own README for the clone/setup instructions), the preferred way to do
 this is:
 
@@ -94,11 +97,11 @@ ends up missing the trailer through some other path (e.g. an amend without `-s`)
 
 ### Export your public key for the CLA signature
 
-Export your public key to a file named after your Codeberg username.
+Export your public key to a file named after your Codefloe username.
 You will need this file in the next step:
 
 ```bash
-gpg --export --armor your@email.com > your-codeberg-username.asc
+gpg --export --armor your@email.com > your-codefloe-username.asc
 ```
 
 ---
@@ -111,11 +114,11 @@ gpg --export --armor your@email.com > your-codeberg-username.asc
 2. Open a **dedicated pull request** (separate from your code contribution)
    with the following two changes:
 
-   a. Add a row with your full name, Codeberg username, and the current
+   a. Add a row with your full name, Codefloe username, and the current
       date to [CLA-signatures/individuals.md](./CLA-signatures/individuals.md).
 
    b. Add the `.asc` file you exported in the previous step to
-      `.forgejo/keys/<your-codeberg-username>.asc`.
+      `.forgejo/keys/<your-codefloe-username>.asc`.
       This file is required for the automated GPG signature verification
       to work on your future pull requests.
 
@@ -145,7 +148,7 @@ Contact us at **[MAINTAINERS_EMAIL]** before submitting any contribution.
 ### Build the project
 
 ```bash
-git clone https://codeberg.org/vidocq/vidocq.git
+git clone https://codefloe.com/vidocq/vidocq.git
 cd vidocq
 mvn clean install
 ```
@@ -162,8 +165,8 @@ Each Vidocq component lives in its own repository. Clone the repository
 of the module you want to work on:
 
 ```bash
-git clone https://codeberg.org/vidocq/chappe.git   # HTTP server
-git clone https://codeberg.org/vidocq/grimm.git    # OpenAPI
+git clone https://codefloe.com/vidocq/chappe.git   # HTTP server
+git clone https://codefloe.com/vidocq/grimm.git    # OpenAPI
 # etc.
 
 cd chappe
@@ -174,22 +177,33 @@ mvn test
 
 ## Submitting a Contribution
 
-Codeberg runs on [Forgejo](https://forgejo.org/), not GitHub — the `gh` CLI won't talk to
+Codefloe runs on [Forgejo](https://forgejo.org/), not GitHub — the `gh` CLI won't talk to
 it. If you'd rather open and manage pull requests from the terminal than through the web
 UI, install [`tea`](https://gitea.com/gitea/tea), the official CLI for Gitea/Forgejo
 servers (`brew install tea`, or `go install code.gitea.io/tea@latest` if you have a Go
 toolchain; prebuilt binaries are also published on that project's releases page). It's
 entirely optional — everything below works fine from the web UI too.
 
-#### Logging `tea` into Codeberg
+#### Logging `tea` into Codefloe
+
+`tea login add` does **not** prompt interactively for the token despite what `--help`
+implies — passing `--name`/`--url` alone with no other flag fails outright with
+`Error: no token set`. Read it into a shell variable instead, so the raw token never
+appears as a literal command-line argument (and therefore never lands in your shell
+history):
 
 ```bash
-tea login add --name codeberg --url https://codeberg.org
+read -rs -p "Codefloe token: " TOKEN; echo
+tea login add --name codefloe --url https://codefloe.com --token "$TOKEN"
+unset TOKEN
 ```
 
-Leave off `--token` so it prompts interactively — passing it as a flag leaves the raw
-token sitting in your shell history. You'll need a personal access token from Codeberg's
-**Settings → Applications**, with these scopes:
+Don't add `--user <name>` alongside `--token` — that flag switches `tea` into a
+basic-auth flow that *creates a new token* from a username/password pair, and will then
+fail with `Error: no password set` even though you already supplied a valid token.
+
+You'll need a personal access token from Codefloe's **Settings → Applications**, with
+these scopes:
 
 - **`user` → Read** — required for login itself (`tea` calls the "current user" API to
   verify the token); without it you'll get
@@ -201,7 +215,7 @@ token sitting in your shell history. You'll need a personal access token from Co
 Scopes can't be edited on an existing token — if you picked the wrong ones, generate a
 new token rather than trying to fix the old one.
 
-1. Fork the repository on Codeberg.
+1. Fork the repository on Codefloe.
 2. Create a feature branch from `main`:
    ```bash
    git checkout -b feat/your-feature-name
@@ -269,5 +283,5 @@ Signed-off-by: Your Name <your@email.com>
 ## Questions?
 
 Open a discussion on the
-[Vidocq issue tracker](https://codeberg.org/vidocq/vidocq/issues)
+[Vidocq issue tracker](https://codefloe.com/vidocq/vidocq/issues)
 or reach out at **[MAINTAINERS_EMAIL]**.

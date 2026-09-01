@@ -21,7 +21,7 @@ modifications or additions to existing work, submitted by You to the
 Vidocq project, whether in source code, documentation, or any other form.
 
 **"Project"** means the Vidocq software project and all its components,
-hosted at https://codeberg.org/vidocq.
+hosted at https://codefloe.com/vidocq.
 
 **"Maintainers"** means the Vidocq project founders and any person or entity
 designated by them to manage the Project.
@@ -124,7 +124,7 @@ any respect.
 
 ## How to Sign
 
-To sign this CLA, open a pull request that adds your name and Codeberg
+To sign this CLA, open a pull request that adds your name and Codefloe
 username to [CLA-signatures/individuals.md](./CLA-signatures/individuals.md)
 (for individual contributors) or
 [CLA-signatures/corporate.md](./CLA-signatures/corporate.md)
