@@ -9,7 +9,7 @@ jobs:
     if: >-
       github.event.issue.pull_request != null &&
       contains(github.event.comment.body, '/merge')
-    runs-on: ubuntu-latest
+    runs-on: vidocq-runner
     steps:
       - name: Require write access
         env:

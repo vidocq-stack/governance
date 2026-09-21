@@ -11,7 +11,7 @@ on:
 jobs:
   cla-check:
     name: CLA signature check
-    runs-on: ubuntu-latest
+    runs-on: vidocq-runner
     steps:
       - name: Checkout governance repository
         uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
 
   gpg-check:
     name: GPG signature check
-    runs-on: ubuntu-latest
+    runs-on: vidocq-runner
     steps:
       - name: Checkout calling repository
         uses: actions/checkout@v4
@@ -85,7 +85,7 @@ jobs:
 
   signoff-check:
     name: Signed-off-by check
-    runs-on: ubuntu-latest
+    runs-on: vidocq-runner
     steps:
       - name: Checkout calling repository
         uses: actions/checkout@v4
