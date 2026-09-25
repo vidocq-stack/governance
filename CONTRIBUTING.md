@@ -35,33 +35,42 @@ your first pull request.
 Every commit must be cryptographically signed with your GPG key. This is
 verified automatically on every pull request.
 
-Rather than maintain our own copy of these instructions (and risk them
-drifting out of date), follow Codeberg's guide for the whole
-generate-a-key → configure-Git → upload-to-your-account flow. Codeberg and
-Codefloe both run [Forgejo](https://forgejo.org/), so the steps are identical —
-just upload the key to your **Codefloe** account instead:
-
-**→ [Codeberg documentation: Sign commits with GPG](https://docs.codeberg.org/security/gpg-key/)**
-
-It walks through `gpg --full-generate-key` (recommending an RSA 4096 key),
-then `git config set --global user.signingkey <KEY ID>` and
-`git config set --global commit.gpgsign true` to sign every commit by
-default, plus how to add the resulting public key to your Forgejo (Codefloe) account
-and verify ownership of it. If your Git predates the `config set`
-subcommand (added in Git 2.46), the older equivalent still works:
-`git config --global commit.gpgsign true`.
-
-Vidocq also expects annotated release tags to be signed, which that guide
-doesn't cover — while you're there, add:
+**1. Generate a key.** Use the email address of your Codefloe account; RSA 4096 is a
+safe choice when asked:
 
 ```bash
+gpg --full-generate-key
+gpg --list-secret-keys --keyid-format=long   # the key ID follows "sec   rsa4096/"
+```
+
+**2. Make Git sign every commit and tag:**
+
+```bash
+git config --global user.signingkey <KEY ID>
+git config --global commit.gpgsign true
 git config --global tag.gpgsign true
+```
+
+**3. Add the public key to your Codefloe account.** First make sure the key's email
+is a **verified** email of your account (Settings → Account): Codefloe marks a
+commit as signed only when the key's email is verified. Then export the key and
+paste it in [Settings → SSH / GPG Keys → Add key](https://codefloe.com/user/settings/keys):
+
+```bash
+gpg --armor --export <KEY ID>
+```
+
+**4. Verify the key on Codefloe.** Click *Verify* next to the key, sign the
+token it shows, and paste the signature back:
+
+```bash
+echo -n '<token>' | gpg -a --default-key <KEY ID> --detach-sig
 ```
 
 If you'd rather use a graphical interface, [Kleopatra](https://www.openpgp.org/software/kleopatra/)
 (Windows/Linux) and [GPG Suite](https://gpgtools.org/) (macOS) are good options. The
 [GNU Privacy Guard handbook](https://www.gnupg.org/gph/en/manual.html) is the reference for
-anything that guide doesn't cover (subkeys, smartcards, key rotation, ...).
+anything this guide doesn't cover (subkeys, smartcards, key rotation, ...).
 
 Once your key exists and is attached to your Codefloe account, two
 Vidocq-specific steps remain:
