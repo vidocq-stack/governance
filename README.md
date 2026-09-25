@@ -1,7 +1,7 @@
 # Vidocq — Governance
 
 This repository centralizes all contribution rules, legal agreements, and
-community health files for the [Vidocq project](https://codeberg.org/vidocq).
+community health files for the [Vidocq project](https://codefloe.com/Vidocq).
 
 Vidocq is an open source Java implementation of
 **Jakarta EE Core Profile 11** and **MicroProfile 7.1**, released under a
@@ -62,7 +62,7 @@ And add a minimal `CONTRIBUTING.md` pointing here:
 ```markdown
 # Contributing to [Component]
 
-Please read the [Vidocq Contribution Guide](https://codeberg.org/vidocq/governance/src/branch/main/CONTRIBUTING.md).
+Please read the [Vidocq Contribution Guide](https://codefloe.com/Vidocq/governance/src/branch/main/CONTRIBUTING.md).
 ```
 
 ---
