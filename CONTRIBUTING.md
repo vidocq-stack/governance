@@ -1,284 +1,432 @@
 # Contributing to Vidocq
 
-Thank you for your interest in contributing to **Vidocq**, an open source
-Java implementation of Jakarta EE Core Profile 11 and MicroProfile 7.1.
+Thank you for your interest in **Vidocq**, an open source Java implementation of Jakarta EE Core
+Profile 11 and MicroProfile 7.1.
+
+This guide is for **contributors**: you work in your own fork and open pull requests from it.
+Maintainers work directly in the Vidocq repositories and follow [`MAINTAINERS.md`](./MAINTAINERS.md).
 
 ---
 
-## Table of Contents
+## Table of contents
 
-- [Before You Start](#before-you-start)
+- [The path, in short](#the-path-in-short)
 - [Set Up GPG Commit Signing](#set-up-gpg-commit-signing)
 - [Sign the CLA](#sign-the-cla)
-- [Development Setup](#development-setup)
-- [Submitting a Contribution](#submitting-a-contribution)
-- [Code Style](#code-style)
-- [Commit Message Format](#commit-message-format)
+- [Contribute from a fork](#contribute-from-a-fork)
+- [Fixing a failing check](#fixing-a-failing-check)
+- [Commit messages](#commit-messages)
+- [Engineering rules](#engineering-rules)
+- [Working with an AI assistant](#working-with-an-ai-assistant)
+- [Bugs and benchmarks](#bugs-and-benchmarks)
+- [When your key expires or changes](#when-your-key-expires-or-changes)
+- [Windows without WSL](#windows-without-wsl)
+- [Using `tea` from the terminal](#using-tea-from-the-terminal)
+- [Troubleshooting](#troubleshooting)
+- [Questions](#questions)
 
 ---
 
-## Before You Start
+## The path, in short
 
-All contributions to Vidocq require two things:
+1. **Once:** create your Codefloe account, your SSH and GPG keys, and sign the CLA. The
+   [one-time setup in the README](./README.md#one-time-setup) walks you through it, for macOS,
+   Linux and Windows.
+2. **Once:** set up your workstation. Clone the
+   [Vidocq workspace](https://codefloe.com/Vidocq/vidocq-workspace) and follow its
+   [getting-started guide](https://codefloe.com/Vidocq/vidocq-workspace/src/branch/main/docs/getting-started.md):
+   tools, `mani sync`, git hooks, Maven configuration, first build.
+3. **For each change:** [contribute from a fork](#contribute-from-a-fork).
+4. A maintainer reviews your pull request and merges it.
 
-1. **GPG-signed commits** with a Signed-off-by trailer
-2. A signed **Contributor License Agreement (CLA)**
-
-Both are non-negotiable. They protect you, other contributors, and the
-project users. Please follow the steps below in order before opening
-your first pull request.
+The examples below use the same fictional contributor as the README: **Jane Doe**, Codefloe
+username **`janedoe`**, email **`jane.doe@example.com`**, contributing to the `chappe`
+repository.
 
 ---
 
 ## Set Up GPG Commit Signing
 
-Every commit must be cryptographically signed with your GPG key. This is
-verified automatically on every pull request.
+Every commit of a pull request must be signed with a GPG key whose public part is in
+[`.forgejo/keys/`](./.forgejo/keys/), and must carry a `Signed-off-by:` line.
 
-**1. Generate a key.** Use the email address of your Codefloe account; RSA 4096 is a
-safe choice when asked:
-
-```bash
-gpg --full-generate-key
-gpg --list-secret-keys --keyid-format=long   # the key ID follows "sec   rsa4096/"
-```
-
-**2. Make Git sign every commit and tag:**
-
-```bash
-git config --global user.signingkey <KEY ID>
-git config --global commit.gpgsign true
-git config --global tag.gpgsign true
-```
-
-**3. Add the public key to your Codefloe account.** First make sure the key's email
-is a **verified** email of your account (Settings → Account): Codefloe marks a
-commit as signed only when the key's email is verified. Then export the key and
-paste it in [Settings → SSH / GPG Keys → Add key](https://codefloe.com/user/settings/keys):
-
-```bash
-gpg --armor --export <KEY ID>
-```
-
-**4. Verify the key on Codefloe.** Click *Verify* next to the key, sign the
-token it shows, and paste the signature back:
-
-```bash
-echo -n '<token>' | gpg -a --default-key <KEY ID> --detach-sig
-```
-
-If you'd rather use a graphical interface, [Kleopatra](https://www.openpgp.org/software/kleopatra/)
-(Windows/Linux) and [GPG Suite](https://gpgtools.org/) (macOS) are good options. The
-[GNU Privacy Guard handbook](https://www.gnupg.org/gph/en/manual.html) is the reference for
-anything this guide doesn't cover (subkeys, smartcards, key rotation, ...).
-
-Once your key exists and is attached to your Codefloe account, two
-Vidocq-specific steps remain:
-
-### Configure automatic Signed-off-by
-
-If you're working inside the multi-repo
-[`vidocq-workspace`](https://codefloe.com/Vidocq/vidocq-workspace) (cloned via `mani` —
-see that repo's own README for the clone/setup instructions), the preferred way to do
-this is:
-
-```bash
-mani run -a install-hooks
-```
-
-This points every repo's `core.hooksPath` at the workspace's shared `.githooks/`
-directory, which both auto-appends the `Signed-off-by` trailer *and* hard-blocks any
-commit that somehow ends up without one anyway (`--amend` without `-s`, cherry-picks,
-IDE-driven commits, ...) — stronger than the config option below, and it wires up
-every repo in the workspace in one shot instead of one at a time.
-
-If you're working from a single standalone clone instead, the lighter-weight
-equivalent is:
-
-```bash
-git config --local format.signoff true
-```
-
-This automatically appends `Signed-off-by: Your Name <your@email.com>`
-to every commit message — but, unlike the hook above, it won't stop a commit that
-ends up missing the trailer through some other path (e.g. an amend without `-s`).
-
-### Export your public key for the CLA signature
-
-Export your public key to a file named after your Codefloe username.
-You will need this file in the next step:
-
-```bash
-gpg --export --armor your@email.com > your-codefloe-username.asc
-```
+- **First time:** follow Steps 2 and 3 of the [one-time setup](./README.md#one-time-setup) to
+  create the key and configure Git, then [Step 4](./README.md#step-4-sign-the-cla) to add the key
+  to this repository.
+- **Your pull request already fails the GPG or DCO check:** see
+  [Fixing a failing check](#fixing-a-failing-check).
 
 ---
 
 ## Sign the CLA
 
-### Individual contributors
+Individuals sign with a pull request on this repository: see
+[Step 4 of the README](./README.md#step-4-sign-the-cla). Organisations sign a Corporate CLA: see
+[Corporate contributors](./README.md#corporate-contributors).
 
-1. Read [CLA.md](./CLA.md) carefully.
-2. Open a **dedicated pull request** (separate from your code contribution)
-   with the following two changes:
-
-   a. Add a row with your full name, Codefloe username, and the current
-      date to [CLA-signatures/individuals.md](./CLA-signatures/individuals.md).
-
-   b. Add the `.asc` file you exported in the previous step to
-      `.forgejo/keys/<your-codefloe-username>.asc`.
-      This file is required for the automated GPG signature verification
-      to work on your future pull requests.
-
-3. In the pull request description, include the following statement verbatim:
-
-   > I have read and agree to the Vidocq Contributor License Agreement v1.0.
-
-4. Once the CLA pull request is merged, your code contributions can be
-   reviewed and accepted.
-
-### Corporate contributors
-
-If you are contributing on behalf of your employer, or if you write code
-as part of your job, your organization must sign a Corporate CLA first.
-Contact us at **[MAINTAINERS_EMAIL]** before submitting any contribution.
+Sign the CLA **before** your first code pull request: the CLA check of a code pull request fails
+until your signature is merged.
 
 ---
 
-## Development Setup
+## Contribute from a fork
 
-### Prerequisites
+These steps assume the workspace is set up (`vidocq-workspace` cloned, `mani sync` and
+`mani run -a install-hooks` done). In the workspace, each repository is cloned in `<repo>/main/`
+and its `origin` remote is the Vidocq repository, which you can read but not push to. You push
+to your fork, through a second remote.
 
-- JDK 25 or later
-- Apache Maven 3.9+
-- Git 2.34+
+### 1. Fork the repository and add your fork as a remote
 
-### Build the project
+On Codefloe, open the repository (for example [Vidocq/chappe](https://codefloe.com/Vidocq/chappe)),
+click **Fork**, then **Fork repository**. Then, once per repository:
 
 ```bash
-git clone https://codefloe.com/Vidocq/vidocq.git
-cd vidocq
-mvn clean install
+cd vidocq-workspace/chappe/main
+git remote add fork git@codefloe.com:janedoe/chappe.git
+git remote -v
 ```
 
-### Run the tests
-
-```bash
-mvn test
+```text
+fork    git@codefloe.com:janedoe/chappe.git (fetch)
+fork    git@codefloe.com:janedoe/chappe.git (push)
+origin  git@codefloe.com:Vidocq/chappe.git (fetch)
+origin  git@codefloe.com:Vidocq/chappe.git (push)
 ```
 
-### Work on a specific module
+### 2. Create a branch from the latest `main`
 
-Each Vidocq component lives in its own repository. Clone the repository
-of the module you want to work on:
+Start from the latest `main` of the Vidocq repository, in a worktree: the workspace convention is
+a sibling directory named after the branch, so `chappe/main/` stays on `main`.
 
 ```bash
-git clone https://codefloe.com/Vidocq/chappe.git   # HTTP server
-git clone https://codefloe.com/Vidocq/grimm.git    # OpenAPI
-# etc.
+git fetch origin
+BRANCH=fix/42-header-without-colon BASE=origin/main mani run wt-add -p chappe
+cd ../fix/42-header-without-colon
+```
 
-cd chappe
-mvn test
+Without mani, the same with Git alone:
+`git worktree add -b fix/42-header-without-colon ../fix/42-header-without-colon origin/main`.
+A plain branch works too: `git switch -c fix/42-header-without-colon origin/main`.
+
+Name the branch `<type>/<issue>-<short-description>`, with a type from
+[Commit messages](#commit-messages).
+
+### 3. Write the test first, then the code
+
+Vidocq is developed test first: write a test that fails, make it pass, then clean up. Before
+you push, build the repository from scratch:
+
+```bash
+./mvnw -ntp clean install
+```
+
+Always `clean install`: a stale `target/` directory can hide a failure or invent one.
+
+### 4. Commit
+
+```bash
+git add -A
+git commit -m "fix(http): reject a header line without a colon (#42)"
+```
+
+`commit.gpgsign` signs the commit, and the workspace hook adds the `Signed-off-by:` line. Check
+the last commit:
+
+```bash
+git log --show-signature -1
+```
+
+### 5. Push to your fork and open the pull request
+
+```bash
+git push -u fork fix/42-header-without-colon
+```
+
+On the page of your fork (`https://codefloe.com/janedoe/chappe`), click **New pull request** and
+check that it goes **into** `Vidocq/chappe`, branch `main`, **from** `janedoe/chappe`, branch
+`fix/42-header-without-colon`. In the description, say what the change does, why, and which
+issue it closes (`Closes #42`).
+
+### 6. What the checks do
+
+| Check | What it verifies |
+|---|---|
+| `pr-validate / governance-checks` | your CLA signature, the GPG signature and the `Signed-off-by:` line of every commit |
+| `pr-validate / pr-validate` | the build and the tests of the repository, then the build of every Vidocq repository that depends on it, against your version |
+
+A pull request that changes only documentation (`*.md`, `*.adoc`, `docs/`) skips the build.
+Pull requests from forks receive no CI secrets: the Slack notification and the SonarQube
+analysis are skipped, which is expected. A few repositories use slightly different check names;
+the pull request page lists the ones that apply.
+
+### 7. Review, updates and merge
+
+- A maintainer reviews the pull request. Answer the comments with new commits pushed to the same
+  branch (`git push`): the pull request updates itself.
+- If `main` moved on in the meantime, rebase your branch on it and push again:
+
+  ```bash
+  git fetch origin
+  git rebase --gpg-sign origin/main
+  git push --force-with-lease fork fix/42-header-without-colon
+  ```
+
+- **Do not use the "Update branch" button** of the pull request page. In merge mode it adds a
+  commit that the forge does not sign, so the GPG check fails; in rebase mode it removes the
+  signatures of your commits.
+- When the review is done and the checks are green, a maintainer merges the pull request. Vidocq
+  repositories accept fast-forward merges only, so your commits land on `main` as they are, with
+  your own signatures.
+
+---
+
+## Fixing a failing check
+
+**CLA check: `@janedoe has not signed the Vidocq CLA`.** Your CLA pull request is not merged yet,
+or the username in `CLA-signatures/individuals.md` differs from your Codefloe username (check
+the `@` and the spelling). Fix it on this repository, then re-run the checks of your code pull
+request.
+
+**GPG check: `The following commits are not GPG-signed or have invalid signatures`.** Possible
+causes:
+
+- the commit was made before `commit.gpgsign` was set, or from a tool that does not sign;
+- the key that signed it is not in `.forgejo/keys/` (a new key, or a key other than the one you
+  registered);
+- your key has expired (see [When your key expires or changes](#when-your-key-expires-or-changes)).
+
+Check locally with `git log --show-signature origin/main..HEAD`. Once your setup is right,
+re-sign every commit of the branch and push:
+
+```bash
+git fetch origin && git fetch fork
+git rebase --force-rebase --signoff --gpg-sign origin/main
+git push --force-with-lease fork <your-branch>
+```
+
+**GPG check: `created by the forge itself`.** Someone clicked **Update branch** on the pull
+request, which added an unsigned merge commit to the branch of your fork. Run the same three
+commands: the rebase keeps your own commits only (it drops merge commits) and re-signs them,
+and the push replaces the branch of your fork.
+
+**DCO check: a commit has no `Signed-off-by:` line.** The same rebase adds it (`--signoff`). To
+avoid it, install the workspace hooks (`mani run -a install-hooks`), or always commit with
+`git commit -s`.
+
+**`pr-validate` fails.** Open the logs from the pull request page. Reproduce the build locally
+with `./mvnw -ntp clean install`. If a downstream repository fails, your change breaks one of
+its users: build that repository locally against yours (see the
+[workspace guide](https://codefloe.com/Vidocq/vidocq-workspace/src/branch/main/docs/getting-started.md)).
+
+---
+
+## Commit messages
+
+Vidocq uses [Conventional Commits](https://www.conventionalcommits.org/), in English:
+
+```text
+<type>(<scope>): <short description> (#<issue>)
+
+<optional body: what changed and why>
+
+Signed-off-by: Jane Doe <jane.doe@example.com>
+```
+
+- **type:** `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `build`, `ci` or `chore`;
+- **scope:** the area of the repository, for example `http` or `tls` in Chappe, `processor` in
+  Vauban, `core` in Foy. Leave it out when the change has no single area;
+- **issue:** the issue the commit belongs to: `(#42)` in the same repository,
+  `(Vidocq/vidocq#284)` in another one.
+
+Examples, from the history of the repositories:
+
+```text
+fix(http): share the buffer pool across virtual threads
+fix(tls): the handshake unwraps buffered records before reading (#24)
+docs(http2): state that server push and 103 Early Hints are not supported
 ```
 
 ---
 
-## Submitting a Contribution
+## Engineering rules
 
-Codefloe runs on [Forgejo](https://forgejo.org/), not GitHub — the `gh` CLI won't talk to
-it. If you'd rather open and manage pull requests from the terminal than through the web
-UI, install [`tea`](https://gitea.com/gitea/tea), the official CLI for Gitea/Forgejo
-servers (`brew install tea`, or `go install code.gitea.io/tea@latest` if you have a Go
-toolchain; prebuilt binaries are also published on that project's releases page). It's
-entirely optional — everything below works fine from the web UI too.
+The rules are written in the `AGENTS.md` file of the
+[workspace](https://codefloe.com/Vidocq/vidocq-workspace/src/branch/main/AGENTS.md), with a
+summary in each repository's own `AGENTS.md`. In short:
 
-#### Logging `tea` into Codefloe
+- **Strict Java Modules:** every module has a `module-info.java`, exports only its public API, and
+  opens a package only with a written reason. No classpath mode.
+- **Zero runtime dependencies:** what ships depends only on the Jakarta and MicroProfile APIs it
+  implements. A new dependency needs a justification in the pull request.
+- **Code generated at build time:** prefer the Class-File API (JEP 484) and annotation
+  processors to runtime reflection. No dynamic proxies, no ASM or Byte Buddy.
+- **Virtual threads for I/O:** no platform-thread pool without a documented reason.
+- **Tests first:** red, green, refactor. Official TCKs run through Arquillian.
+- **English everywhere:** code, Javadoc, comments, commit messages, documentation.
+
+---
+
+## Working with an AI assistant
+
+The `AGENTS.md` files are read by coding agents (Codex, Claude Code, ...): opened at the root of
+the workspace, they follow the same rules as you. If an AI assistant helped you write a commit,
+say so with a trailer naming the tool, for example:
+
+```text
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+```
+
+You remain the author and the committer, and the one who signs the commit: the trailer records
+the provenance of the code, not a co-authorship.
+
+---
+
+## Bugs and benchmarks
+
+- Every reproducible bug is tracked in the `BUG.md` file at the root of the repository concerned:
+  short id, date, symptom, minimal reproduction, suspected cause, status. If your pull request
+  fixes a bug, update its entry.
+- Every performance figure goes into the `BENCH.md` file of the repository: date, hardware and
+  JVM, exact command, raw results, difference with the previous run. No performance figure in a
+  commit message or a pull request without its `BENCH.md` entry.
+
+---
+
+## When your key expires or changes
+
+The GPG check verifies your commits against the key file in `.forgejo/keys/`, so this file must
+follow your key.
+
+- **To extend your key**, set a new expiry date, then update the copies:
+
+  ```bash
+  gpg --list-secret-keys --keyid-format=long jane.doe@example.com   # the 40-character line is the fingerprint
+  gpg --quick-set-expire F81F0DE57A8A4A910F6DAB87CA48EF72D48EAEB5 2y
+  ```
+
+- **To switch to a new key**, create it as in Step 2 of the README and set it in
+  `git config --global user.signingkey`.
+
+In both cases, export the key again and open a pull request on this repository that replaces
+`.forgejo/keys/janedoe.asc` (same commands as in [Step 4](./README.md#step-4-sign-the-cla)), and
+add the new export to your Codefloe account ([Settings → SSH / GPG keys](https://codefloe.com/user/settings/keys)).
+
+---
+
+## Windows without WSL
+
+WSL 2 is the supported way to work on Windows (see [Your platform](./README.md#your-platform)).
+For a small change, such as a documentation fix or your CLA pull request, native Windows works
+too:
+
+1. Install [Git for Windows](https://git-scm.com/download/win) and
+   [Gpg4win](https://www.gpg4win.org/), for example in PowerShell:
+
+   ```powershell
+   winget install --id Git.Git -e
+   winget install --id GnuPG.Gpg4win -e
+   ```
+
+2. Git for Windows ships its own `gpg`, which does not see the keys of Gpg4win. Find the one
+   installed by Gpg4win, then point Git to it:
+
+   ```powershell
+   where.exe gpg
+   ```
+
+   Pick the line that ends with `GnuPG\bin\gpg.exe` (not the one under `Git\usr\bin`), and use it
+   with forward slashes, for example:
+
+   ```powershell
+   git config --global gpg.program "C:/Program Files (x86)/GnuPG/bin/gpg.exe"
+   ```
+
+3. Run the commands of Steps 2.2 to 4 of the README in **PowerShell**, where `gpg` is the one of
+   Gpg4win, with these three differences:
+   - write files with `--output` rather than `>`, which Windows PowerShell writes in UTF-16:
+
+     ```powershell
+     gpg --armor --output .forgejo/keys/janedoe.asc --export CA48EF72D48EAEB5
+     ```
+
+   - sign the verification token of Step 3 from a file, because a PowerShell pipe adds a line
+     ending that Codefloe rejects:
+
+     ```powershell
+     Set-Content -NoNewline -Path token.txt -Value "<the token shown by Codefloe>"
+     gpg --armor --default-key CA48EF72D48EAEB5 --detach-sign token.txt
+     Get-Content token.txt.asc
+     ```
+
+   - copy a key or a signature to the clipboard with `| Set-Clipboard`.
+
+   Kleopatra, installed with Gpg4win, can also create and export the key.
+
+The workspace tooling (mani tasks, `mvnw`, TCK scripts) is written for a POSIX shell: for code
+changes, use WSL 2.
+
+---
+
+## Using `tea` from the terminal
+
+Codefloe runs on [Forgejo](https://forgejo.org/), not GitHub: the `gh` CLI does not work with
+it. To manage pull requests from the terminal instead of the web interface, install
+[`tea`](https://gitea.com/gitea/tea), the CLI for Gitea and Forgejo servers (`brew install tea`,
+or a binary from the project's releases page). It is optional: everything in this guide works
+from the web interface.
+
+Log in once:
 
 ```bash
 tea login add --name codefloe --url https://codefloe.com
 ```
 
-Leave off `--token` so it prompts interactively — passing it as a flag leaves the raw
-token sitting in your shell history. You'll need a personal access token from Codefloe's
-**Settings → Applications**, with these scopes:
+Leave out `--token`, so that `tea` asks for it: a token passed as a flag stays in your shell
+history. Create the token in Codefloe's **Settings → Applications**, with these scopes:
 
-- **`user` → Read** — required for login itself (`tea` calls the "current user" API to
-  verify the token); without it you'll get
-  `token does not have at least one of required scope(s): [read:user]`.
-- **`repository` → Read and Write** — covers PR creation/management
-  (`tea pr create`, `tea pr checkout`, ...).
-- **`issue` → Read and Write** — optional, only if you'll also manage issues via `tea`.
+- **`user` → Read**, needed by the login itself; without it you get
+  `token does not have at least one of required scope(s): [read:user]`;
+- **`repository` → Read and Write**, to create and manage pull requests;
+- **`issue` → Read and Write**, only to manage issues with `tea` too.
 
-Scopes can't be edited on an existing token — if you picked the wrong ones, generate a
-new token rather than trying to fix the old one.
+The scopes of an existing token cannot be changed: if they are wrong, create a new token.
 
-1. Fork the repository on Codefloe.
-2. Create a feature branch from `main`:
-   ```bash
-   git checkout -b feat/your-feature-name
-   ```
-3. Make your changes, committing with GPG signature and `Signed-off-by`.
-4. Push your branch and open a pull request against `main`.
-5. The automated checks will verify:
-   - That you have a signed CLA (your username is in `individuals.md`)
-   - That all commits are GPG-signed
-   - That all commits have a `Signed-off-by` trailer
+To open the pull request of [step 5](#5-push-to-your-fork-and-open-the-pull-request) from the
+terminal:
 
-A maintainer will review your pull request. Please be patient: this is a
-volunteer-driven project.
-
----
-
-## Code Style
-
-- Follow standard Java conventions (Oracle Java Code Conventions).
-- Use 4 spaces for indentation, no tabs.
-- Maximum line length: 120 characters.
-- All public APIs must have Javadoc.
-- New features must be accompanied by tests.
-- Do not introduce dependencies outside the Jakarta EE Core Profile 11
-  and MicroProfile 7.1 specifications unless discussed with the
-  maintainers first.
-
----
-
-## Commit Message Format
-
-Vidocq uses [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>(<scope>): <short description>
-
-[optional body]
-
-Signed-off-by: Your Name <your@email.com>
-```
-
-**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`
-
-**Scopes:** module names (`chappe`, `grimm`, `diderot`, `baudot`, `linne`, ...)
-
-**Examples:**
-
-```
-feat(chappe): add HTTP/2 push promise support
-
-Implements server push as defined in RFC 9113 section 8.4.
-Closes #42.
-
-Signed-off-by: Your Name <your@email.com>
-```
-
-```
-fix(grimm): correct OpenAPI schema generation for generics
-
-Signed-off-by: Your Name <your@email.com>
+```bash
+tea pr create --repo Vidocq/chappe --head janedoe:fix/42-header-without-colon --base main \
+  --title "fix(http): reject a header line without a colon (#42)"
 ```
 
 ---
 
-## Questions?
+## Troubleshooting
 
-Open a discussion on the
-[Vidocq issue tracker](https://codefloe.com/Vidocq/vidocq/issues)
-or reach out at **[MAINTAINERS_EMAIL]**.
+**`error: gpg failed to sign the data`, or `gpg: signing failed: Inappropriate ioctl for device`.**
+GnuPG cannot ask for your passphrase. On Linux and WSL 2, check that `GPG_TTY` is set
+(`echo $GPG_TTY` prints something like `/dev/pts/0`; otherwise see Step 2.1 of the README). On
+macOS, check the `pinentry-program` line of `~/.gnupg/gpg-agent.conf`. Then restart the agent with
+`gpgconf --kill gpg-agent` and try again.
+
+**`gpg: signing failed: No secret key`.** `user.signingkey` does not match a key of your keyring.
+Compare `git config --global user.signingkey` with `gpg --list-secret-keys --keyid-format=long`.
+
+**The commit shows as unverified on Codefloe.** The email of the commit
+(`git log -1 --format=%ae`) must be the email of the key and a verified email of your Codefloe
+account.
+
+**`Permission denied (publickey)` when you clone or push.** Your SSH key is not on your Codefloe
+account, or not the one SSH uses: see Step 1 of the README and run `ssh -T git@codefloe.com`.
+
+**Maven: `Non-resolvable parent POM ... io.vidocq:vidocq-parent:pom:...-SNAPSHOT`.** Maven does
+not know the snapshot repository where the Vidocq SNAPSHOTs are published: see the Maven step of
+the [workspace guide](https://codefloe.com/Vidocq/vidocq-workspace/src/branch/main/docs/getting-started.md).
+
+---
+
+## Questions
+
+Open an issue in the repository concerned, or in this one for anything about the CLA or the
+contribution process, or write to [contribute@vidocq.io](mailto:contribute@vidocq.io).

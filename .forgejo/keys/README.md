@@ -6,17 +6,23 @@ who have signed the Vidocq CLA.
 Each file is named `<codefloe-username>.asc` and contains the
 contributor's armored public key.
 
-These keys are imported automatically by the contribution-checks
-workflow to verify commit signatures on every pull request.
+On every pull request, the `gpg-check` action of
+[`Vidocq/ci`](https://codefloe.com/Vidocq/ci) (also part of its
+`governance-checks` action) imports all of these keys and verifies the
+signature of each commit against them.
 
 ## Adding your key
 
 Export your public key and add it here as part of your CLA
-signature pull request:
+signature pull request (from the root of your clone of this repository;
+the full procedure is in [Step 4 of the README](../../README.md#step-4-sign-the-cla)):
 
 ```bash
-gpg --export --armor your@email.com > your-codefloe-username.asc
+gpg --armor --export <your key ID> > .forgejo/keys/<your-codefloe-username>.asc
 ```
+
+If your key expires or changes, replace your file with a new export: see
+[When your key expires or changes](../../CONTRIBUTING.md#when-your-key-expires-or-changes).
 
 ## Service identities
 

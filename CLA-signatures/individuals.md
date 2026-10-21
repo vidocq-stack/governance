@@ -21,4 +21,5 @@ have read and agree to the
 ---
 
 *To add your signature, open a pull request that appends a row to the
-table above. See [CONTRIBUTING.md](../CONTRIBUTING.md) for details.*
+table above, with your Codefloe username prefixed with `@`. The steps are in
+[Step 4 of the README](../README.md#step-4-sign-the-cla).*
