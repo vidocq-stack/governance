@@ -22,8 +22,14 @@ Vidocq repositories on Codefloe. If you contribute from a fork, read
 
 ## Becoming a maintainer
 
-Everyone starts as a contributor, working from a fork. After a period of contributions, the
-maintainers may invite a contributor to join them. The decision belongs to the maintainers:
+Everyone starts as a contributor, working from a fork. A contributor has no role in the Vidocq
+organisation: no team, no collaborator access to a repository. Everything a contributor needs —
+forking a repository, opening a pull request, signing the CLA — is open to any Codefloe account,
+and the CI of their pull requests runs once a maintainer approves it (see
+[Merging a pull request from a fork](#merging-a-pull-request-from-a-fork)). Do not add
+contributors to `devs`, to `Owners`, or as collaborators of a repository.
+
+After a period of contributions, the maintainers may invite a contributor to join them. The decision belongs to the maintainers:
 there is no automatic threshold and no application form. If you think the time has come, you can
 say so in an issue of this repository or at [contribute@vidocq.io](mailto:contribute@vidocq.io).
 
@@ -111,9 +117,18 @@ The merge-bot cannot push to a contributor's fork, so a pull request from a fork
 hand. The required checks run on it as usual, but without the CI secrets: the Slack notification
 and the SonarQube analysis are skipped, which is expected.
 
-1. **Let the checks run.** If they stay pending, open the run from the pull request; if Codefloe
-   asks a maintainer to approve the workflows of the pull request, approve them after reading the
-   change.
+1. **Approve the workflows.** Codefloe does not run the workflows of a pull request from a fork
+   whose author has no write access to the repository: the pull request page says that they wait
+   for approval, with three buttons. **Read the change first**: the workflows build it, so its
+   code (tests, Maven plugins, scripts) runs on the Vidocq runners, without the CI secrets.
+   - **Approve once** runs the workflows on this commit; every new push to the pull request
+     needs a new approval.
+   - **Approve always** runs them, and trusts the author for this pull request and their future
+     ones in this repository, without any other right. Keep it for contributors you know;
+     **Revoke** withdraws it.
+   - **Deny** cancels the waiting workflows.
+
+   A push of yours to the pull request (see below) does not need an approval.
 2. **Review.** Comment, or request changes: the contributor pushes the fixes to the same branch.
 3. **Bring the branch up to date.** A fast-forward merge needs the branch to start from the
    current `main`. If it does not, ask the contributor to rebase it (the commands are in
