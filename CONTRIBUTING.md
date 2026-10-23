@@ -380,14 +380,20 @@ it. To manage pull requests from the terminal instead of the web interface, inst
 or a binary from the project's releases page). It is optional: everything in this guide works
 from the web interface.
 
-Log in once:
+Log in once, with the token read from the terminal instead of typed on the command line:
 
 ```bash
-tea login add --name codefloe --url https://codefloe.com
+printf 'Codefloe token: '; read -rs TOKEN; echo
+GITEA_SERVER_TOKEN="$TOKEN" tea login add --name codefloe --url https://codefloe.com
+unset TOKEN
 ```
 
-Leave out `--token`, so that `tea` asks for it: a token passed as a flag stays in your shell
-history. Create the token in Codefloe's **Settings → Applications**, with these scopes:
+`tea` does not ask for the token when it gets `--name` and `--url`: without one it stops with
+`Error: no token set`. Passing it with `--token` works, but leaves it in your shell history.
+Do not add `--user`: with it, `tea` tries to create a new token from a username and password,
+and stops with `Error: no password set`.
+
+Create the token in Codefloe's **Settings → Applications**, with these scopes:
 
 - **`user` → Read**, needed by the login itself; without it you get
   `token does not have at least one of required scope(s): [read:user]`;
