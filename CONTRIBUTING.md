@@ -153,14 +153,15 @@ issue it closes (`Closes #42`).
 | Check | What it verifies |
 |---|---|
 | `pr-validate / governance-checks` | your CLA signature, the GPG signature and the `Signed-off-by:` line of every commit |
-| `pr-validate / pr-validate` | the build and the tests of the repository, then the build of every Vidocq repository that depends on it, against your version |
+| `pr-validate / pr-validate` | the build and the tests of the repository, then the build and the tests of every Vidocq repository that depends on it, against your version (one parallel job per repository) |
 
 The checks start once a maintainer has approved them: Codefloe does not run the workflows of a
 pull request from a fork until a maintainer of the repository approves them, for one commit or
 for all your pull requests in that repository. Until then, the checks show as waiting.
 
-A pull request that changes only documentation (`*.md`, `*.adoc`, `docs/`) skips the build.
-Pull requests from forks receive no CI secrets: the Slack notification and the SonarQube
+A pull request that changes only documentation (`*.md`, `*.adoc`, `docs/`) skips the build. One
+that changes only tests (`src/test/`) or CI configuration (`.forgejo/`) builds and tests the
+repository, but does not rebuild the repositories that depend on it. Pull requests from forks receive no CI secrets: the Slack notification and the SonarQube
 analysis are skipped, which is expected. A few repositories use slightly different check names;
 the pull request page lists the ones that apply.
 

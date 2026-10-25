@@ -102,12 +102,34 @@ Comment on a pull request, as a member of `devs` or `Owners`:
 
 | Command | What the bot does |
 |---|---|
-| `/merge` | rebases the branch on `main`, signs each commit again with the key of the CI bot (author and `Signed-off-by:` are kept), force-pushes the branch, waits for the required checks (up to 30 minutes), then merges with a fast-forward |
+| `/merge` | rebases the branch on `main`, signs each commit again with the key of the CI bot (author and `Signed-off-by:` are kept), force-pushes the branch, waits for the required checks (60 minutes by default, only the checks `main` requires), then merges with a fast-forward |
 | `/rebase` | the same, without the merge: use it to bring a branch up to date |
 
 The bot answers with a comment on the pull request when it succeeds or fails. It refuses the
 pull requests that come from a fork: see the next section. The public key of the CI bot and its
 rotation are described in [`.forgejo/keys/README.md`](./.forgejo/keys/README.md).
+
+### Several pull requests on one repository: a PR train
+
+The `pr-validate` check of a brick builds every repository that depends on it, so it takes long,
+and each merge moves `main` and restarts the check of the other pull requests. When two or more
+pull requests of one repository are ready, merge them as a **train**:
+
+1. In a fresh worktree from `origin/main`, cherry-pick the commits of each pull request, in
+   dependency order, signed (`git cherry-pick -S`). Do not rebase the branches onto each other:
+   that duplicates commits.
+2. Force-push each pull request's branch to its point of the chain: each pull request is a prefix
+   of the next one, and the last one, the top, holds every change. Cancel the runs this starts
+   on the other pull requests.
+3. Wait for the checks and the SonarQube comment of the top only: they cover the whole chain.
+4. Merge the top with the forge's **Fast-forward only** merge (its commits are already signed by
+   the cherry-picks). `main` then moves over every pull request of the chain, in order, and the
+   forge's automatic merge detection marks the others merged; mark any it misses as manually
+   merged, with its head commit.
+
+If the top fails, find the faulty pull request, take it out of the chain and build the chain
+again. How the checks themselves work is described in
+[`Vidocq/GestionProjet`](https://codefloe.com/Vidocq/GestionProjet/src/branch/main/README.md).
 
 ---
 
